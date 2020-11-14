@@ -28,7 +28,13 @@ endif(APPLE)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-file (GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+file (GLOB_RECURSE SOURCE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/edge-detect.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/pipeline-edge.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/pipeline-inlet.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/pipeline-outlet.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/sobel-filter.cpp
+)
 
 add_executable (${EXE} ${SOURCE_FILES})
 
