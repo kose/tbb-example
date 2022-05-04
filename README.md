@@ -1,16 +1,18 @@
 
-# Exsample of Intl TBB:Threading Building Blocks / OpenCV.
+# Exsample of oneAPI Threading Building Blocks (oneTBB) / OpenCV.
 
 ## これは？ 
-Intel TBB を使った並列化のサンプルです。
+oneTBB を使った並列処理のサンプルです。
 
 - 空間方向：フレーム内のソーベルフィルタ
 - 時間方向：フレーム処理をパイプラインで並列化
 
+
 ## References
-[1] [インテル スレッディング・ビルディング・ブロック(intel TBB)](https://www.xlsoft.com/jp/products/intel/perflib/tbb/41/tbb_userguide_lnx/index.htm)  
-[2] [インテル スレッディング・ビルディング・ブロック 〜 マルチコア時代のC++並列プログラミング](https://www.oreilly.co.jp/books/9784873113555/)
+[1] [インテルopenAPIスレッディング・ビルディング・ブロック クロスアーキテクチャーの託すベースのプログラミングの最適化](https://jp.xlsoft.com/documents/intel/tbb/2021/optimize-task-based-programming-in-a-cross-architecture-world.pdf)
+[2] [Working on the Assembly Line: parallel_pipeline](https://oneapi-src.github.io/oneTBB/main/tbb_userguide/Working_on_the_Assembly_Line_pipeline.html)
+[3] [old TBB2020 branch](https://github.com/kose/tbb-example/tree/tbb2020)
 
 ## Environment
-This implementation has been tested with TBB 2020 / OpenCV 4.5.0 on MacOS and Raspberry Pi OS
+This implementation has been tested with oneTBB 2021.5.0 (Homebrew) / OpenCV 4.5.5-openvino-2022.1.0 on MacOS 12.3.1
 

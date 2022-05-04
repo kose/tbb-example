@@ -1,4 +1,4 @@
-// Copyright (C) 2018, 2020 KOSEKI Yoshinori
+// Copyright (C) 2018-2022 KOSEKI Yoshinori
 ///
 /// @file  pipeline-outlet.hpp
 /// @brief パイプライン: 出口のクラス
@@ -7,7 +7,9 @@
 
 #pragma once
 
-#include <tbb/tbb.h>
+#include <iostream>
+#include <mutex>
+#include <oneapi/tbb.h>
 #include <opencv2/opencv.hpp>
 
 #include "pipeline-data.hpp"
@@ -16,22 +18,30 @@
 ///
 /// パイプライン：出口のクラス
 ///
-class Outlet : public tbb::filter {
+class Outlet {
 public:
+  Outlet (Canvas& canvas) : canvas(canvas) {}
 
-  /// コンストラクタ
-  Outlet(tbb::mutex& mutex, cv::Mat& canvas);
 
-  /// デストラクタ
-  virtual ~Outlet();
+  void operator()(Container* pdata) const {
 
-  /// 処理本体
-  void* operator() (void* data);
+    int width = pdata->image_in.cols;
+    int height = pdata->image_in.rows;
+
+    cv::Mat result(height, width * 2, CV_8UC3);
+    pdata->image_in.copyTo(result(cv::Rect(0, 0, width, height)));
+    cvtColor(pdata->image_edge, result(cv::Rect(width, 0, width, height)), cv::COLOR_GRAY2RGB);
+
+    {
+      // std::scoped_lock lk{canvas.mutex};           // C++17
+      std::lock_guard<std::mutex> lock(canvas.mutex); // C++11
+    
+      result.copyTo(canvas.image_canvas);
+    }
+  }
 
 private:
-  tbb::mutex& mutex;            ///< 排他処理のための
-  cv::Mat& canvas;              ///< 表示画面
-
+  Canvas& canvas;
 };
 
 /// Local Variables: ///

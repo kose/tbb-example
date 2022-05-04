@@ -1,4 +1,4 @@
-// Copyright (C) 2018, 2020 KOSEKI Yoshinori
+// Copyright (C) 2018-2022 KOSEKI Yoshinori
 ///
 /// @file  pipeline-inlet.hpp
 /// @brief パイプライン: 入口のクラス
@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <tbb/tbb.h>
+#include <oneapi/tbb.h>
 #include <opencv2/opencv.hpp>
 
 #include "pipeline-data.hpp"
@@ -16,21 +16,36 @@
 ///
 /// パイプライン：入力のクラス
 ///
-class Inlet : public tbb::filter {
+class Inlet {
 public:
 
-  /// コンストラクタ
-  Inlet(const int& runmode);
+  Inlet(const int frame_number, cv::VideoCapture& capture, const int& runmode) :
+    frame_number(frame_number), capture(capture), runmode(runmode) {}
+  
+  Inlet(const Inlet& f) : frame_number(f.frame_number), capture(f.capture), runmode(f.runmode) {}
 
-  /// デストラクタ
-  virtual ~Inlet();
 
-  /// 処理本体：動画ファイル力、検出
-  void* operator() (void* data);
+  Container* operator()( oneapi::tbb::flow_control& fc ) const {
+
+    Container* pdata = new Container(frame_number++);
+
+
+    capture >> pdata->image_in;
+
+    if (pdata->image_in.empty() || runmode == 0) {
+      fc.stop();
+      std::cerr << "::end::" << std::endl;
+      return NULL;
+    }
+    
+    return pdata;
+  }
+  
 
 private:
-  const int& runmode;           ///< 動作モード 0:終了、1:通常動作、2~:リザーブ
-  cv::VideoCapture capture;     ///< ビデオ入力
+  mutable int frame_number;
+  cv::VideoCapture& capture;
+  const int& runmode;
 };
 
 /// Local Variables: ///

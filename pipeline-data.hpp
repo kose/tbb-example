@@ -1,4 +1,4 @@
-// Copyright (C) 2018, 2020 KOSEKI Yoshinori
+// Copyright (C) 2018-2022 KOSEKI Yoshinori
 ///
 /// @file  pipeline-data.hpp
 /// @brief パイプライン： パイプラインに流すデータ構造体
@@ -9,15 +9,33 @@
 
 #include <opencv2/opencv.hpp>
 
-///
-/// パイプライン： パイプラインに流すデータ構造体
-///
-typedef struct {
+
+//
+// パイプラインを流れるデータ
+//
+class Container {
+public:
 
-  cv::Mat image_in;             ///< 入力画像
-  cv::Mat image_edge;           ///< エッジ画像
+  Container(int frame_number) : frame_number(frame_number) {}
+  
+  int frame_number;
+  cv::Mat image_in;             // BGR
+  cv::Mat image_edge;           // monochrome
+};
 
-} PipelinedData;
+
+//
+// パイプラインの出力キャンバス
+//
+class Canvas {
+public:
+
+  Canvas() {}
+  virtual ~Canvas() {}
+  
+  std::mutex mutex;
+  cv::Mat image_canvas;
+};
 
 /// Local Variables: ///
 /// truncate-lines:t ///

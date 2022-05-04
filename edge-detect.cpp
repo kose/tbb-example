@@ -1,4 +1,4 @@
-// Copyright (C) 2018, 2020 KOSEKI Yoshinori
+// Copyright (C) 2018-2022 KOSEKI Yoshinori
 ///
 /// @file  edge-detect.cpp
 /// @brief 並列エッジ検出
@@ -16,25 +16,44 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <mutex>
 
 #include <opencv2/opencv.hpp>
+#include <oneapi/tbb.h>
 
-#include "tbb/pipeline.h"
-#include "tbb/compat/thread"
-#include "tbb/task_scheduler_init.h"
-
+#include "pipeline-data.hpp"
 #include "pipeline-inlet.hpp"
 #include "pipeline-edge.hpp"
 #include "pipeline-outlet.hpp"
 
 const static int ESC = 27;                          ///< ESCキー定義
 const static std::string winName("Edge detection"); ///< ウインドウ名
-const static int n_task = 4;                        ///< 同時に実行するステージ数の上限
+const static int ntoken = 4;                        ///< 同時に実行するステージ数の上限
 
-void RunPipeline(tbb::pipeline* p)
+///
+/// パイプライン定義
+///
+void RunPipeline(Canvas& canvas, const int& runmode)
 {
-  p->run(n_task);
+  cv::VideoCapture capture;
+
+  capture.open(0);
+
+  if (!capture.isOpened()) {
+    throw std::runtime_error("Can not open VideoCapture: ");
+  }
+
+  capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+  capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+
+  oneapi::tbb::filter<void, Container*> f1(oneapi::tbb::filter_mode::serial_in_order, Inlet(0, capture, runmode));
+  oneapi::tbb::filter<Container*, Container*> f2(oneapi::tbb::filter_mode::parallel, Edge());
+  oneapi::tbb::filter<Container*, void> f3(oneapi::tbb::filter_mode::serial_in_order, Outlet(canvas));
+  oneapi::tbb::filter<void, void> f = f1 & f2 & f3;
+
+  oneapi::tbb::parallel_pipeline(ntoken, f);
 }
+
 
 ///
 /// メイン関数
@@ -42,34 +61,15 @@ void RunPipeline(tbb::pipeline* p)
 int main(int argc, char *argv[])
 {
   try {
-    tbb::mutex mutex_canvas;      // 排他
-    cv::Mat canvas_proc;          // キャンパス:処理用
-    cv::Mat canvas;               // キャンパス:表示用
 
-    int runmode = 1;              // 動作モード 0:終了、1:通常動作、2~:リザーブ
-    bool pause = false;           // ポーズ状態か？
+    Canvas canvas;
+    int runmode = 1;
+    bool pause = false;
+    cv::Mat image_canvas;
     int wait = 1000 / 30;         // 表示は 30fpsで。
-
-    //
+    
     // 別スレッドでパイプライン処理を実行
-    //
-
-    // パイプライン実体
-    tbb::pipeline pipe;
-
-    // Inlet()を登録
-    Inlet inlet(runmode);
-    pipe.add_filter(inlet);
-
-    // Edge()を登録
-    Edge edge;
-    pipe.add_filter(edge);
-
-    // Outlet()を登録
-    Outlet outlet(mutex_canvas, canvas_proc);
-    pipe.add_filter(outlet);
-
-    std::thread task(RunPipeline, &pipe);
+    std::thread task (RunPipeline, std::ref(canvas), std::ref(runmode));
 
     //
     // メインループ：主スレッド
@@ -93,12 +93,14 @@ int main(int argc, char *argv[])
       }
 
       {
-        tbb::mutex::scoped_lock lock(mutex_canvas);
-        canvas_proc.copyTo(canvas);
+        // std::scoped_lock lk{canvas.mutex};           // C++17
+        std::lock_guard<std::mutex> lock(canvas.mutex); // C++11
+
+        image_canvas = canvas.image_canvas.clone();
       }
 
-      if (!canvas.empty()) {
-        imshow(winName, canvas);
+      if (!image_canvas.empty()) {
+        imshow(winName, image_canvas);
       }
     }
 
