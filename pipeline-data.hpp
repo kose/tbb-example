@@ -13,10 +13,10 @@
 //
 // パイプラインを流れるデータ
 //
-class Container {
+class PipelinedData {
 public:
 
-  Container(int frame_number) : frame_number(frame_number) {}
+  PipelinedData(int frame_number) : frame_number(frame_number) {}
   
   int frame_number;
   cv::Mat image_in;             // BGR

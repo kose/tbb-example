@@ -33,22 +33,11 @@ const static int ntoken = 4;                        ///< 同時に実行する�
 ///
 /// パイプライン定義
 ///
-void RunPipeline(Canvas& canvas, const int& runmode)
+void RunPipeline(const int& runmode, const bool& pause, Canvas& canvas)
 {
-  cv::VideoCapture capture;
-
-  capture.open(0);
-
-  if (!capture.isOpened()) {
-    throw std::runtime_error("Can not open VideoCapture: ");
-  }
-
-  capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-  capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
-
-  oneapi::tbb::filter<void, Container*> f1(oneapi::tbb::filter_mode::serial_in_order, Inlet(0, capture, runmode));
-  oneapi::tbb::filter<Container*, Container*> f2(oneapi::tbb::filter_mode::parallel, Edge());
-  oneapi::tbb::filter<Container*, void> f3(oneapi::tbb::filter_mode::serial_in_order, Outlet(canvas));
+  oneapi::tbb::filter<void, PipelinedData*> f1(oneapi::tbb::filter_mode::serial_in_order, Inlet(runmode, pause));
+  oneapi::tbb::filter<PipelinedData*, PipelinedData*> f2(oneapi::tbb::filter_mode::parallel, Edge());
+  oneapi::tbb::filter<PipelinedData*, void> f3(oneapi::tbb::filter_mode::serial_in_order, Outlet(canvas));
   oneapi::tbb::filter<void, void> f = f1 & f2 & f3;
 
   oneapi::tbb::parallel_pipeline(ntoken, f);
@@ -69,7 +58,7 @@ int main(int argc, char *argv[])
     int wait = 1000 / 30;         // 表示は 30fpsで。
     
     // 別スレッドでパイプライン処理を実行
-    std::thread task (RunPipeline, std::ref(canvas), std::ref(runmode));
+    std::thread task (RunPipeline, std::ref(runmode), std::ref(pause), std::ref(canvas));
 
     //
     // メインループ：主スレッド

@@ -22,7 +22,7 @@ public:
 
   Edge () {}
 
-  Container* operator()(Container* pdata) const {
+  PipelinedData* operator()(PipelinedData* pdata) const {
 
     int width = pdata->image_in.cols;
     int height = pdata->image_in.rows;

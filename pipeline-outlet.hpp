@@ -23,7 +23,7 @@ public:
   Outlet (Canvas& canvas) : canvas(canvas) {}
 
 
-  void operator()(Container* pdata) const {
+  void operator()(PipelinedData* pdata) const {
 
     int width = pdata->image_in.cols;
     int height = pdata->image_in.rows;
