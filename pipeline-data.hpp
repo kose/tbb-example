@@ -34,7 +34,7 @@ public:
   virtual ~Canvas() {}
   
   std::mutex mutex;
-  cv::Mat image_canvas;
+  cv::Mat image;
 };
 
 /// Local Variables: ///

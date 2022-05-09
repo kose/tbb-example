@@ -36,7 +36,7 @@ public:
       // std::scoped_lock lk{canvas.mutex};           // C++17
       std::lock_guard<std::mutex> lock(canvas.mutex); // C++11
     
-      result.copyTo(canvas.image_canvas);
+      result.copyTo(canvas.image);
     }
   }
 

@@ -35,10 +35,11 @@ const static int ntoken = 4;                        ///< 同時に実行する�
 ///
 void RunPipeline(const int& runmode, const bool& pause, Canvas& canvas)
 {
-  oneapi::tbb::filter<void, PipelinedData*> f1(oneapi::tbb::filter_mode::serial_in_order, Inlet(runmode, pause));
-  oneapi::tbb::filter<PipelinedData*, PipelinedData*> f2(oneapi::tbb::filter_mode::parallel, Edge());
-  oneapi::tbb::filter<PipelinedData*, void> f3(oneapi::tbb::filter_mode::serial_in_order, Outlet(canvas));
-  oneapi::tbb::filter<void, void> f = f1 & f2 & f3;
+  oneapi::tbb::filter<void, PipelinedData*> inlet(oneapi::tbb::filter_mode::serial_in_order, Inlet(runmode, pause));
+  oneapi::tbb::filter<PipelinedData*, PipelinedData*> edge(oneapi::tbb::filter_mode::parallel, Edge());
+  oneapi::tbb::filter<PipelinedData*, void> outlet(oneapi::tbb::filter_mode::serial_in_order, Outlet(canvas));
+
+  oneapi::tbb::filter<void, void> f = inlet & edge & outlet;
 
   oneapi::tbb::parallel_pipeline(ntoken, f);
 }
@@ -77,15 +78,11 @@ int main(int argc, char *argv[])
         ;
       }
 
-      if (pause) {
-        continue;
-      }
-
       {
         // std::scoped_lock lk{canvas.mutex};           // C++17
         std::lock_guard<std::mutex> lock(canvas.mutex); // C++11
 
-        image_canvas = canvas.image_canvas.clone();
+        image_canvas = canvas.image.clone();
       }
 
       if (!image_canvas.empty()) {
