@@ -4,7 +4,9 @@ if (NOT(EXE))
   set(EXE edge-detect)
 endif()
 
-if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(FLAG_DEBUG)
+else()
   set(FLAG_DEBUG -D_DEBUG_)
 endif()
 
@@ -26,11 +28,9 @@ string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} ARCH)
 if (ARCH STREQUAL "arm64")
   include_directories(/opt/homebrew/include)
   link_directories(/opt/homebrew/lib)
-   set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
 else()
   include_directories(/usr/local/include)
   link_directories(/usr/local/lib)
-  set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
 endif()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,6 +39,7 @@ file (GLOB_RECURSE SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/edge-detect.cpp
 )
 
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
 add_definitions(${FLAG_DEBUG})
 add_executable (${EXE} ${SOURCE_FILES})
 
