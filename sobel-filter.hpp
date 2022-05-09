@@ -28,22 +28,18 @@ class SobelFilter {
     for (size_t y = range.rows().begin(); y != range.rows().end(); y++) {
       for (size_t x = range.cols().begin(); x != range.cols().end(); x++) {
         image_out.at<unsigned char>(y, x - 1) =
-          limit(128 + image_in.at<unsigned char>(y, x - 1) - image_in.at<unsigned char>(y, x + 1)
-                + image_in.at<unsigned char>(y - 1, x) - image_in.at<unsigned char>(y + 1, x),
-                0, 255);
+          clip(128 + image_in.at<unsigned char>(y, x - 1) - image_in.at<unsigned char>(y, x + 1)
+               + image_in.at<unsigned char>(y - 1, x) - image_in.at<unsigned char>(y + 1, x));
       }
     }
   }
 
 private:
+
   // 0 〜 255 に収めるための
-  inline static unsigned char limit(int x, int min, int max)
+  inline unsigned char clip(int a) const
   {
-    if (x >= max) return max;
-
-    if (x <= min) return min;
-
-    return x;
+    return a > 255 ? 255 : (a < 0 ? 0 : a);
   }
 };
 
