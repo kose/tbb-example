@@ -17,7 +17,7 @@ private:
   const cv::Mat& image_in;
   cv::Mat& image_out;
 
- public:
+public:
   SobelFilter(const cv::Mat& image_in, cv::Mat& image_out) :
     image_in(image_in), image_out(image_out) {}
 
