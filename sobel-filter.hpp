@@ -13,12 +13,11 @@
 ///
 class SobelFilter {
 
-  // extern
-  const cv::Mat image_in;
-  mutable cv::Mat image_out; // FIXME: mutableでないといけない?
+private:
+  const cv::Mat& image_in;
+  cv::Mat& image_out;
 
  public:
-
   SobelFilter(const cv::Mat& image_in, cv::Mat& image_out) :
     image_in(image_in), image_out(image_out) {}
 
@@ -35,7 +34,6 @@ class SobelFilter {
   }
 
 private:
-
   // 0 〜 255 に収めるための
   inline unsigned char clip(int a) const
   {
